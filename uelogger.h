@@ -1,12 +1,12 @@
 /*
- * logger.h
+ * uelogger.h
  *
  *  Created on: Dec 26, 2023
- *      Author: ilyas
+ *      Author: İlyas Başaran
  */
 
-#ifndef LOGGER_LOGGER_H_
-#define LOGGER_LOGGER_H_
+#ifndef UELOGGER_UELOGGER_H_
+#define UELOGGER_UELOGGER_H_
 
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 /**
- * @brief Level of logger
+ * @brief Level of UElogger
  */
 typedef enum
 {
@@ -43,7 +43,7 @@ typedef enum
 	 * immediate attention.
 	 */
 	FATAL,
-}logger_levels_t;
+}uelogger_levels_t;
 
 /**
  * @brief Function pointer type to obtain the elapsed time in milliseconds.
@@ -52,7 +52,7 @@ typedef enum
  *          that retrieves the elapsed time in milliseconds. The function should take
  *          no parameters and return a floating-point value (float).
  */
-typedef float (*GetMillisecondsFunction)(void);
+typedef float (*UELoggerGetMillisecondsFunction)(void);
 
 /**
  * @brief Function pointer type to print formatted log messages.
@@ -62,89 +62,66 @@ typedef float (*GetMillisecondsFunction)(void);
  *          to a buffer (const uint8_t*) and the length of the buffer (uint8_t) as parameters.
  *          The function does not return a value.
  */
-typedef void (*LoggerPrintfFunction)(const uint8_t* p, uint8_t len);
+typedef void (*UELoggerPrintfFunction)(const uint8_t* p, size_t len);
 
 /**
  * @brief   Get the elapsed time in milliseconds.
  *
  * @details This function retrieves the elapsed time in milliseconds through the function
- *          pointer pfGetMilliseconds. If pfGetMilliseconds is set (non-NULL), it calls
+ *          pointer pfUELoggerGetMilliseconds. If pfUELoggerGetMilliseconds is set (non-NULL), it calls
  *          the corresponding function to obtain the elapsed time; otherwise, it returns
  *          a default error value of -1.0f.
  *
  * @return  The elapsed time in milliseconds, or -1.0f if the function pointer is not set
  *          or the corresponding function fails to provide a valid value.
  */
-float GetMilliseconds(void);
+float UELoggerGetMilliseconds(void);
 
 /**
  * @brief   Print a formatted log message.
  *
  * @details This function prints a formatted log message using the function pointer
- *          pfLoggerPrintf. If pfLoggerPrintf is set (non-NULL), it calls the corresponding
+ *          pfUELoggerPrintf. If pfUELoggerPrintf is set (non-NULL), it calls the corresponding
  *          function to print the log message; otherwise, it does nothing.
  *
  * @param[in] p   A pointer to the buffer containing the log message.
  * @param[in] len The length of the log message buffer.
  */
-void LoggerPrintf(const uint8_t* p, uint8_t len);
+void UELoggerPrintf(const uint8_t* p, size_t len);
 
 /**
  * @brief   Register application-specific functions for logging and information retrieval.
  *
  * @details This function is used to register application-specific functions for information
- *          retrieval and logging. It takes function pointers to the GetMilliseconds and
- *          LoggerPrintf functions as parameters and assigns them to
+ *          retrieval and logging. It takes function pointers to the UELoggerGetMilliseconds and
+ *          UELoggerPrintf functions as parameters and assigns them to
  *          corresponding internal function pointers.
  *
- * @param[in] pGetMilliseconds      A function pointer to obtain the elapsed time in milliseconds.
- * @param[in] pLoggerPrintf         A function pointer to print a formatted log message.
+ * @param[in] pUELoggerGetMilliseconds      A function pointer to obtain the elapsed time in milliseconds.
+ * @param[in] pUELoggerPrintf         		A function pointer to print a formatted log message.
  */
-void LoggerRegisterAppFunctions(GetMillisecondsFunction pGetMilliseconds, LoggerPrintfFunction pLoggerPrintf);
-
-/**
- * @brief   Get the application name.
- *
- * @details This function retrieves the application name through the global
- *          character array `app_name`. It returns a pointer to a constant
- *          character string representing the application name.
- *
- * @return  A pointer to a constant character string representing the application name.
- */
-const char* GetAppName(void);
+void UELoggerRegisterAppFunctions(UELoggerGetMillisecondsFunction pUELoggerGetMilliseconds, UELoggerPrintfFunction pUELoggerPrintf);
 
 /**
  * @brief   Set the application name.
  *
  * @details This function sets the application name using the provided string `appName`.
- *          It copies the string into the global character array `app_name`, ensuring
- *          it does not exceed the maximum size defined by `sizeof(app_name) - 1`.
- *          The function null-terminates the array to ensure proper string termination.
+ *          It only sets the name if its length does not exceed `UELOGGER_APP_NAME_SIZE - 1`.
+ *          If the string is longer, the function does nothing.
  *
  * @param[in] appName   A pointer to the string representing the new application name.
  */
-void SetAppName(const char* appName);
-
-/**
- * @brief   Get the current log level.
- *
- * @details This function retrieves the current log level from the global variable
- *          `currentLogLevel` and returns it. If the variable is not set, it defaults
- *          to the debug log level (DBG).
- *
- * @return  The current log level, typically of the type logger_levels_t.
- */
-logger_levels_t GetCurrentLogLevel(void);
+void UELoggerSetAppName(const char* appName);
 
 /**
  * @brief   Set the current log level.
  *
  * @details This function sets the current log level to the specified value `level`
- *          in the global variable `currentLogLevel`.
+ *          in the global variable `ueLoggerCurrentLogLevel`.
  *
- * @param[in] level   The new log level to be set, typically of the type logger_levels_t.
+ * @param[in] level   The new log level to be set, typically of the type uelogger_levels_t.
  */
-void SetCurrentLogLevel(logger_levels_t level);
+void UELoggerSetCurrentLogLevel(uelogger_levels_t level);
 
 /**
  * @brief   Retrieve the current content of the logger buffer.
@@ -155,9 +132,9 @@ void SetCurrentLogLevel(logger_levels_t level);
  *
  * @param[out] buffer   A pointer to the buffer where the logger content will be copied.
  */
-void GetLoggerBuffer(char *buffer);
+void UELoggerGetLoggerBuffer(char *buffer);
 
-#if defined(LOGGER_ENABLED)
+#if defined(UELOGGER_ENABLED)
 
 /**
  * @brief This function prints the string to be printed and the argument with the information of the place where it
@@ -171,7 +148,7 @@ void GetLoggerBuffer(char *buffer);
  * @param ...           The argument to be printed.
  *
  */
-void LOG(int level, const char *file, const char *function, int line, const char *fmt, ...);
+void UELOG(int level, const char *file, const char *function, int line, const char *fmt, ...);
 
 /**
  * @brief Macro for simplified logging with log level, file, function, and line information.
@@ -187,9 +164,9 @@ void LOG(int level, const char *file, const char *function, int line, const char
  * @note This macro internally calls the LOG macro and passes the relevant information.
  *       The format and usage are similar to the LOG macro.
  */
-#define LOGGER(level, ...)  LOG(level, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define UELOGGER(level, ...)  UELOG(level, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-#elif defined(HARD_FAULT_LOGGER_ENABLED)
+#elif defined(UELOGGER_HARD_FAULT_ENABLED)
 
 /**
  * @brief   Log a message with file and line information.
@@ -202,12 +179,12 @@ void LOG(int level, const char *file, const char *function, int line, const char
  * @param[in] file   A pointer to the source file name.
  * @param[in] line   The line number in the source file.
  */
-void LOG(const char *file, int line);
+void UELOG(const char *file, int line);
 
 /**
  * @brief This function directs the strings and arguments to be logged.
  */
-#define LOGGER(level, ...)  LOG(__FILE__, __LINE__)
+#define UELOGGER(level, ...)  UELOG(__FILE__, __LINE__)
 
 #else
 
@@ -215,8 +192,8 @@ void LOG(const char *file, int line);
  * @brief This function does not direct the logs to be recorded so that no action is taken and they do not take up
  *        space in the memory.
  */
-#define LOGGER(level, ...)
+#define UELOGGER(level, ...)
 
 #endif
 
-#endif /* LOGGER_LOGGER_H_ */
+#endif /* UELOGGER_UELOGGER_H_ */
